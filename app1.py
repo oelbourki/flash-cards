@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter.colorchooser import askcolor
 from data import *
 from functools import partial
+
 flashcards = []
 allCards = {}
 
@@ -13,15 +14,22 @@ def leftClick(e):
 
 
 class FlashCardRender(Frame):
-	def __init__(self, parent, controller, flashcard: FlashCardData, row, column) -> None:
+	def __init__(
+		self, parent, controller, flashcard: FlashCardData, row, column
+	) -> None:
 		super().__init__(parent, bg=flashcard.color, width=200, height=200)
 		self.flashcard = flashcard
 		self.parent = parent
 		self.controller = controller
-		label1 = Label(self, text=flashcard.name, font=(
-			'Arial 15 bold'), bg=flashcard.color)
-		label2 = Label(self, text=f"{len(flashcard)} card", font=(
-			'Arial 15 bold'), bg=flashcard.color)
+		label1 = Label(
+			self, text=flashcard.name, font=("Arial 15 bold"), bg=flashcard.color
+		)
+		label2 = Label(
+			self,
+			text=f"{len(flashcard)} card",
+			font=("Arial 15 bold"),
+			bg=flashcard.color,
+		)
 		self.modify_button = Button(self, text="+", command=self.modify)
 		label1.pack(padx=30, pady=30)
 		label2.pack(padx=30, pady=30)
@@ -56,10 +64,7 @@ class ModifyCardPage(tk.Frame):
 		self.word_entry = tk.Entry(self)
 		translation_label = tk.Label(self, text="Translation")
 		self.translation_entry = tk.Entry(self)
-		color = tk.Button(
-			self,
-			text='Select a Color',
-			command=self.get_color)
+		color = tk.Button(self, text="Select a Color", command=self.get_color)
 		# color.pack()
 		# arrange the form elements on the screen
 		word_label.grid(row=0, column=0, sticky="e")
@@ -125,18 +130,11 @@ class CreateCardPage(tk.Frame):
 		self.word_entry = tk.Entry(self)
 		translation_label = tk.Label(self, text="Translation")
 		self.translation_entry = tk.Entry(self)
-		color = tk.Button(
-			self,
-			text='Select a Color',
-			command=self.get_color)
-		# color.pack()
-		# arrange the form elements on the screen
+		color = tk.Button(self, text="Select a Color", command=self.get_color)
 		word_label.grid(row=0, column=0, sticky="e")
 		self.word_entry.grid(row=0, column=1)
 		translation_label.grid(row=1, column=0, sticky="e")
 		self.translation_entry.grid(row=1, column=1)
-		# color.grid(row=2,column=1)
-		# create a button to save the flashcard
 		save_button = tk.Button(self, text="Save", command=self.save_card)
 		save_button.grid(row=3, column=1, pady=10)
 		reset_button = tk.Button(self, text="Reset", command=self.reset)
@@ -157,19 +155,11 @@ class CreateCardPage(tk.Frame):
 		self.savedColor = color
 
 	def save_card(self):
-		# get the data from the form
 		word = self.word_entry.get()
 		translation = self.translation_entry.get()
-
-		# create a new Card instance
 		card = Card(word, translation, self.savedColor)
-
-		# add the card to the list of cards
-		# self.controller.cards.append(card)
 		flashcards[-1].append(card)
 		print(flashcards[-1].cards)
-		# # go back to the main page
-		# self.controller.show_frame(MainPage)
 
 
 class MainPage(tk.Frame):
@@ -186,27 +176,38 @@ class MainPage(tk.Frame):
 		my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
 
 		my_scrollbar = ttk.Scrollbar(
-			main_frame, orient=VERTICAL, command=my_canvas.yview)
+			main_frame, orient=VERTICAL, command=my_canvas.yview
+		)
 		my_scrollbar.pack(side=RIGHT, fill=Y)
 
 		my_canvas.configure(yscrollcommand=my_scrollbar.set)
-		my_canvas.bind('<Configure>', lambda e: my_canvas.configure(
-			scrollregion=my_canvas.bbox("all")))
+		my_canvas.bind(
+			"<Configure>",
+			lambda e: my_canvas.configure(scrollregion=my_canvas.bbox("all")),
+		)
 
 		second_frame = Frame(my_canvas)
-		my_canvas.create_window((0, 0), window=second_frame, anchor='nw')
+		my_canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
 		# self.flashCards = []
-		cards = [CardData("boulout"), CardData("test"), CardData("war"), CardData("idea"),
-				 CardData("game"), CardData("titw")]
-		flashcard1 = FlashCardData("Vocabulary", '#ff00ff', cards)
-		flashcard2 = FlashCardData("Math", '#ff00ff', cards[:])
+		cards = [
+			CardData("boulout"),
+			CardData("test"),
+			CardData("war"),
+			CardData("idea"),
+			CardData("game"),
+			CardData("titw"),
+		]
+		flashcard1 = FlashCardData("Vocabulary", "#ff00ff", cards)
+		flashcard2 = FlashCardData("Math", "#ff00ff", cards[:])
 		flashcards.append([flashcard1, flashcard2])
 		for i in range(10):
-			card = FlashCardRender(second_frame, self.controller, flashcard1,
-								   row=i, column=0)
-			card1 = FlashCardRender(second_frame, self.controller, flashcard2,
-									row=i, column=1)
+			card = FlashCardRender(
+				second_frame, self.controller, flashcard1, row=i, column=0
+			)
+			card1 = FlashCardRender(
+				second_frame, self.controller, flashcard2, row=i, column=1
+			)
 			card.bind("<Button-1>", leftClick)
 			# self.flashCards.append(card)
 			# self.flashCards.append(card1)
@@ -240,14 +241,11 @@ class ModifyFlashcardPage(tk.Frame):
 		self.controller = controller
 		self.name_label = tk.Label(self, text="Nom du flashcard:")
 		self.name_entry = tk.Entry(self)
-		self.color = tk.Button(
-			self,
-			text='Select a Color',
-			command=self.get_color)
-		self.create_button = tk.Button(
-			self, text="Modify", command=self.modify_card)
+		self.color = tk.Button(self, text="Select a Color", command=self.get_color)
+		self.create_button = tk.Button(self, text="Modify", command=self.modify_card)
 		self.modify_button = tk.Button(
-			self, text="Modify cards", command=self.modify_cards)
+			self, text="Modify cards", command=self.modify_cards
+		)
 		self.name_label.pack()
 		self.name_entry.pack()
 		self.color.pack()
@@ -286,12 +284,8 @@ class CreateFlashcardPage(tk.Frame):
 		self.name_entry = tk.Entry(self)
 		# self.color_label = tk.Label(self, text="Couleur:")
 		# self.color_entry = tk.Entry(self)
-		self.color = tk.Button(
-			self,
-			text='Select a Color',
-			command=self.get_color)
-		self.create_button = tk.Button(
-			self, text="Créer", command=self.create_card)
+		self.color = tk.Button(self, text="Select a Color", command=self.get_color)
+		self.create_button = tk.Button(self, text="Créer", command=self.create_card)
 
 		self.name_label.pack()
 		self.name_entry.pack()
@@ -325,7 +319,13 @@ class Application(tk.Tk):
 		self.container.grid_columnconfigure(0, weight=1)
 
 		self.frames = {}
-		for F in (MainPage, CreateFlashcardPage, CreateCardPage, ModifyFlashcardPage, ModifyCardPage):
+		for F in (
+			MainPage,
+			CreateFlashcardPage,
+			CreateCardPage,
+			ModifyFlashcardPage,
+			ModifyCardPage,
+		):
 			# print(F)
 			# CreateFlashcardPage
 			frame = F(parent=self.container, controller=self)
