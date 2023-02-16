@@ -19,7 +19,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import time
 import pickle
-
+# import tkSnack
+# "https://www.speech.kth.se/snack/man/snack2.2/python-man.html"
 data.init()
 
 
@@ -32,33 +33,16 @@ def leftClick(controller, flashcard, e):
 	controller.show_frame("DisplayFlashcardPage")
 
 
-cards = [
-	CardData("je", "I"),
-	CardData("quoi", "what"),
-	CardData("veux", "want"),
-	CardData("merci", "thank you"),
-	CardData("tous", "all"),
-	CardData("autre", "other"),
-]
-flashcard1 = FlashCardData("Vocabulary", "#ff00ff", cards)
-flashcard2 = FlashCardData("Math", "#ff00ff", cards[:])
-flashcard3 = FlashCardData("Physics", "#ff00ff", cards[:])
-flashcard4 = FlashCardData("gym", "#ff00ff", cards[:])
-flashcard5 = FlashCardData("Tec", "#ff00ff", cards[:])
-flashcard6 = FlashCardData("english", "#ff00ff", cards[:])
-flashcard7 = FlashCardData("test", "#ff00ff", cards[:])
+print("****************************")
 
-data.flashcards = data.flashcards + \
-	[flashcard1, flashcard2, flashcard3, flashcard4,
-		flashcard5, flashcard6, flashcard7]
-data.reminder = [(time.time(),"Test"),(time.time(),"Game"),(time.time(),"Fear")]
 
 def open_popup(win, text):
-   top= Toplevel(win)
+   top = Toplevel(win)
    top.geometry("200x200")
    top.title("Reminder")
-   label = Label(top, text= text, font=('Mistral 18 bold'))
+   label = Label(top, text=text, font=('Mistral 18 bold'))
    label.pack()
+
 
 class CardRender(Frame):
 	def __init__(self, root, cardData, flashcard) -> None:
@@ -83,7 +67,8 @@ class CardRender(Frame):
 
 	def nof(self):
 		self.flashcard.reminder.append((self.cardData, time.time()))
-
+	def show(self):
+		pass
 	def add(self):
 		print("add")
 		# if
@@ -161,7 +146,7 @@ class MainPage(tk.Frame):
 		clear_frame(self.framex)
 
 		nbr = len(data.flashcards)
-		print("number of fa:", nbr)
+		# print("number of fa:", nbr)
 
 		j = -1
 		i = 0
@@ -223,30 +208,66 @@ class Application(tk.Tk):
 			frame.set_flashcard(flashcard)
 		frame.tkraise()
 
+
 def save_data():
 	file_name = 'flashcards.pkl'
 	with open(file_name, 'wb') as file:
+		print("saving:", data.flashcards)
 		pickle.dump(data.flashcards, file)
 		print(f'Object successfully saved to "{file_name}"')
 	file_name = 'reminder.pkl'
 	with open(file_name, 'wb') as file:
+		print("saving:", data.reminder)
 		pickle.dump(data.reminder, file)
 		print(f'Object successfully saved to "{file_name}"')
 
+
 def load_data():
 	file_name = 'flashcards.pkl'
-	with open(file_name, 'wb') as file:
+	with open(file_name, 'rb') as file:
+		print("loading before:", data.flashcards)
 		data.flashcards = pickle.load(file)
+		print("loading after:", data.flashcards)
+
 		print(f'Object successfully loaded to "{file_name}"')
 	file_name = 'reminder.pkl'
-	with open(file_name, 'wb') as file:
+	with open(file_name, 'rb') as file:
+		print("loading before:", data.reminder)
+
 		data.reminder = pickle.load(file)
+		print("loading after:", data.reminder)
+
 		print(f'Object successfully loaded to "{file_name}"')
 
+
 if __name__ == "__main__":
+	cards = [
+		CardData("je", "I"),
+		CardData("quoi", "what"),
+		CardData("veux", "want"),
+		CardData("merci", "thank you"),
+		CardData("tous", "all"),
+		CardData("autre", "other"),
+	]
+	flashcard1 = FlashCardData("Vocabulary", "#ff00ff", cards)
+	flashcard2 = FlashCardData("Math", "#ff00ff", cards[:])
+	flashcard3 = FlashCardData("Physics", "#ff00ff", cards[:])
+	flashcard4 = FlashCardData("gym", "#ff00ff", cards[:])
+	flashcard5 = FlashCardData("Tec", "#ff00ff", cards[:])
+	flashcard6 = FlashCardData("english", "#ff00ff", cards[:])
+	flashcard7 = FlashCardData("test", "#ff00ff", cards[:])
+
+	data.flashcards = data.flashcards + \
+		[flashcard1, flashcard2, flashcard3, flashcard4,
+			flashcard5, flashcard6, flashcard7]
+	# data.reminder = [(time.time(),"Test"),(time.time(),"Game"),(time.time(),"Fear")]
+	data.reminder = []
+	load_data()
 	app = Application()
 	try:
 		app.mainloop()
+		save_data()
+		# print("exit")
 	except Exception as e:
 		save_data()
 		print(e)

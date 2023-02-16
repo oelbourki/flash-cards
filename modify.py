@@ -95,6 +95,7 @@ class ModifyCardPage(tk.Frame):
 		word = self.word_entry.get()
 		translation = self.translation_entry.get()
 		card = CardData(word)
+		print("here->>",ModifyCardPage.flashcard)
 		ModifyCardPage.flashcard.cards.append(card)
 		self.run()
 
@@ -148,8 +149,7 @@ class ModifyFlashcardPage(tk.Frame):
 		# self.controller.show_frame(CreateCardPage)
 
 	def modify_cards(self):
-		# ModifyFlashcardPage.flashcard.name = self.name_entry.get()
-		# ModifyFlashcardPage.flashcard.color = self.savedColor
+		print("modify cards")
 		ModifyCardPage.set_flashcard(ModifyFlashcardPage.flashcard)
 		self.controller.show_frame("ModifyCardPage")
 

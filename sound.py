@@ -2,15 +2,17 @@ import os
 import platform
 from pathlib import Path
 from pydub import AudioSegment
+from pydub.playback import play
 platform_name = platform.system()
 def path_to_ffmpeg():
 	SCRIPT_DIR = Path(__file__).parent 
-	if platform_name == 'Windows':
-		return str(Path(SCRIPT_DIR, "win", "ffmpeg", "ffmpeg.exe"))
-	elif platform_name == 'Darwin':
-		return str(Path(SCRIPT_DIR, "mac", "ffmpeg", "ffmpeg"))
-	else:
-		return str(Path(SCRIPT_DIR, "linux", "ffmpeg", "ffmpeg"))
+	return str(Path("C:\\ffmpeg\\bin", "ffmpeg.exe"))
+	# if platform_name == 'Windows':
+	# 	return str(Path(SCRIPT_DIR, "win", "ffmpeg", "ffmpeg.exe"))
+	# elif platform_name == 'Darwin':
+	# 	return str(Path(SCRIPT_DIR, "mac", "ffmpeg", "ffmpeg"))
+	# else:
+	# 	return str(Path(SCRIPT_DIR, "linux", "ffmpeg", "ffmpeg"))
 AudioSegment.ffmpeg = path_to_ffmpeg()
 
 if platform_name == 'Windows':
@@ -21,4 +23,6 @@ else:
 
 
 song = AudioSegment.from_mp3('1.mp3')
-play(song)
+# print(song)
+# play(song)
+song.export("1.wav", format="wav")

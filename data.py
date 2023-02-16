@@ -52,7 +52,10 @@ class FlashCardData:
 		return len(self.cards)
 	
 	def __str__(self) -> str:
-		return f"name:{self.name}, color:{self.color}, nbr:{len(self.cards)}"
+		s = f"name:{self.name}, color:{self.color}, nbr:{len(self.cards)}: "
+		for card in self.cards:
+			s += f"{card} ,"
+		return s
 
 
 
