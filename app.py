@@ -19,10 +19,19 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import time
 import pickle
+import datetime
+from pydub import AudioSegment
+import winsound
+from threading import Thread
+from multiprocessing import Process
+import asyncio
 # import tkSnack
 # "https://www.speech.kth.se/snack/man/snack2.2/python-man.html"
 data.init()
 
+def _clear(canvas):
+	for item in canvas.get_tk_widget().find_all():
+		canvas.get_tk_widget().delete(item)
 
 def leftClick(controller, flashcard, e):
 	print("event", e)
@@ -32,47 +41,71 @@ def leftClick(controller, flashcard, e):
 	DisplayFlashcardPage.set_flashcard(flash=flashcard)
 	controller.show_frame("DisplayFlashcardPage")
 
-
+async def playsound(filename, e):
+	print("playing " + filename)
+	await asyncio.create_task(winsound.PlaySound(filename, winsound.SND_ASYNC))
+# async def on_button_click():
+#     # Start playing the sound asynchronously
+#     await asyncio.create_task(play_sound())
 print("****************************")
 
 
 def open_popup(win, text):
-   top = Toplevel(win)
-   top.geometry("200x200")
-   top.title("Reminder")
-   label = Label(top, text=text, font=('Mistral 18 bold'))
-   label.pack()
+	top = Toplevel(win)
+	top.geometry("200x200")
+	top.title("Reminder")
+	label = Label(top, text=text, font=('Arial 15 bold'))
+	label.pack()
 
 
 class CardRender(Frame):
-	def __init__(self, root, cardData, flashcard) -> None:
-		super().__init__(root)
+	def __init__(self, parent, controller, cardData, flashcard) -> None:
+		super().__init__(parent)
 		self.cardData = cardData
 		self.flashcard = flashcard
 		self.card_frame = Frame(self, bg="#b1ddc6")
-		card_frame1 = Frame(self.card_frame)
-		frensh = Label(card_frame1, text="Frensh", font=('Arial 15 bold'))
-		word = Label(card_frame1, text=cardData.info, font=('Arial 15 bold'))
-		self.card_frame.pack(fill=BOTH, expand=1)
-		frensh.pack(padx=50, pady=50)
-		word.pack(padx=50, pady=50)
-		card_frame1.pack(expand=1)
+		self.card_frame1 = Frame(self.card_frame)
+		self.frensh = Label(self.card_frame1, text="Frensh",
+							font=('Arial 15 bold'))
+		self.word = Label(self.card_frame1, text=cardData.info,
+						  font=('Arial 15 bold'))
 		self.yes = Button(self.card_frame, text="YES", command=self.add)
 		self.no = Button(self.card_frame, text="NO", command=self.nof)
-		self.yes.pack(side=RIGHT)
-		self.no.pack(side=LEFT)
-		self.pack(fill=BOTH, expand=1)
+
+		self.english = Label(
+			self.card_frame1, text="English", font=('Arial 15 bold'))
+		self.trans = Label(
+			self.card_frame1, text=cardData.trans, font=('Arial 15 bold'))
 		# flashcard.
 		# self.pack()
 
+	def showTrans(self):
+		self.frensh.pack_forget()
+		self.word.pack_forget()
+		self.card_frame.pack(fill=BOTH, expand=1)
+		self.english.pack(padx=50, pady=50)
+		self.trans.pack(padx=50, pady=50)
+		# self.card_frame1.pack(expand=1)
+		self.yes.pack(side=RIGHT)
+		self.no.pack(side=LEFT)
+		self.pack(fill=BOTH, expand=1)
+
 	def nof(self):
-		self.flashcard.reminder.append((self.cardData, time.time()))
+		self.no.config(state=tk.DISABLED)
+		data.reminder.append((self.cardData, datetime.datetime.now() +  datetime.timedelta(days=1)))
+
 	def show(self):
-		pass
+		self.card_frame.pack(fill=BOTH, expand=1)
+		self.frensh.pack(padx=50, pady=50)
+		self.word.pack(padx=50, pady=50)
+		self.card_frame1.pack(expand=1)
+		self.pack(fill=BOTH, expand=1)
+
 	def add(self):
 		print("add")
-		# if
 		self.yes.config(state=tk.DISABLED)
+		data.reminder.append((self.cardData, datetime.datetime.now() +  datetime.timedelta(days=7)))
+		data.reminder.append((self.cardData, datetime.datetime.now() +  datetime.timedelta(days=30)))
 		lst = self.flashcard.progress[-1]
 		lst[0] = lst[0] + 1
 
@@ -84,27 +117,66 @@ class DisplayFlashcardPage(tk.Frame):
 		tk.Frame.__init__(self, parent, *args, **kwargs)
 		self.parent = parent
 		self.controller = controller
+		self.frame = Frame(self.parent)
+		main_button = tk.Button(self, text="Main", command=self.main)
+		main_button.pack()
+
+	def main(self):
+		self.controller.show_frame("MainPage")
 
 	def run(self):
 		flashcard = DisplayFlashcardPage.flashcard
 		if DisplayFlashcardPage.flashcard:
 			nbr = len(DisplayFlashcardPage.flashcard)
+			if nbr == 0:
+				nbr = 1
 			flashcard.progress.append([0, nbr])
-			language = "en"
+			language = "fr"
 			cardfs = []
+			path = "./sounds/"
+			funcs = []
 			for j in range(nbr):
 				cardd = DisplayFlashcardPage.flashcard.cards[j]
-				speech = gTTS(text=cardd.info, lang=language, slow=True)
-				speech.save(f'{j}.mp3')
-				cardf = CardRender(self.controller, cardd, flashcard)
+				s = "fr" + str(flashcard.name) + str(cardd.info) + str(cardd.trans)
+				filename = f"{s}{j}"
+				file = f"{path}{filename}"
+				# print("f1: ",file)
+				funcs.append(partial(playsound,f"{file}.wav"))
+				if not os.path.isfile(file):
+				# print(cardd)
+					speech = gTTS(text=cardd.info, lang=language, slow=True)
+					speech.save(f'{file}.mp3')
+					audio = AudioSegment.from_mp3(f'{file}.mp3')
+					audio.export(f'{file}.wav', format="wav")
+				cardf = CardRender(self, self.controller, cardd, flashcard)
+				# cardf.pack()
 				cardfs.append(cardf)
-
+			TIME = 5000
+			j = 0
+			# playsound("./sounds/MathjeI0.wav")
+			processs = []
 			for i, cardf in enumerate(cardfs):
-				print("hererrrrr")
-				self.after((i + 1) * 5000, cardf.pack)
-				self.after((i + 1) * 5000 + 1000, cardf.show)
-				self.after((i + 2) * 5000, cardf.destroy)
-		self.controller.show_frame("MainPage")
+				s = "fr" + str(flashcard.name) + str(cardf.cardData.info) + str(cardf.cardData.trans)
+				filename = f"{s}{i}"
+				file = f"{path}{filename}"
+				# print("f2: ",file)
+				# thread = Thread(target= lambda : self.after((j) * TIME,funcs[i](".")))
+				# thread.start()
+				# process = Process(target= lambda : self.after((j) * TIME,funcs[i](".")))
+				# process.start()
+				# processs.append(process)
+				self.after((j) * TIME, cardf.show)
+				# winsound.PlaySound(f"{file}.wav", winsound.SND_ASYNC)
+				# self.after((j) * TIME,partial(winsound.PlaySound, f"{file}.wav", winsound.SND_ASYNC))
+				# f = partial(playsound,f"{file}.wav")
+				# self.after((j) * TIME,funcs[i]("."))
+				self.after((j + 1) * TIME, cardf.showTrans)
+				self.after((j + 2) * TIME, cardf.destroy)
+				j += 2
+			for process in processs:
+				process.join()
+			print("i should retunr to main")
+			# self.after(nbr * 5000, self.controller.show_frame("MainPage"))
 
 	@staticmethod
 	def set_flashcard(flash):
@@ -117,37 +189,40 @@ class MainPage(tk.Frame):
 		tk.Frame.__init__(self, parent, *args, **kwargs)
 		self.parent = parent
 		self.controller = controller
-		main_frame = Frame(self)
-		main_frame.pack(fill=BOTH, expand=1)
-		my_canvas = Canvas(main_frame)
-		my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
-		my_scrollbar = ttk.Scrollbar(
-			main_frame, orient=VERTICAL, command=my_canvas.yview
+		self.main_frame = Frame(self)
+		self.main_frame.pack(fill=BOTH, expand=1)
+		self.my_canvas = Canvas(self.main_frame)
+		self.my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
+		self.my_scrollbar = ttk.Scrollbar(
+			self.main_frame, orient=VERTICAL, command=self.my_canvas.yview
 		)
-		my_scrollbar.pack(side=RIGHT, fill=Y)
-		my_canvas.configure(yscrollcommand=my_scrollbar.set)
-		my_canvas.bind(
+		self.my_scrollbar.pack(side=RIGHT, fill=Y)
+		self.my_canvas.configure(yscrollcommand=self.my_scrollbar.set)
+		self.my_canvas.bind(
 			"<Configure>",
-			lambda e: my_canvas.configure(
-				scrollregion=my_canvas.bbox("all")),
+			lambda e: self.my_canvas.configure(
+				scrollregion=self.my_canvas.bbox("all")),
 		)
-		self.second_frame = Frame(my_canvas)
-		my_canvas.create_window((0, 0), window=self.second_frame, anchor="nw")
+		self.second_frame = Frame(self.my_canvas)
+		self.my_canvas.create_window((0, 0), window=self.second_frame, anchor="nw")
 		self.framex = Frame(self)
 		self.run()
 		# messagebox.showinfo("reminder", "this waht")
 		# open_popup(self.controller)
+		rems = []
 		for rem in data.reminder:
-			if time.time() > rem[0]:
-				open_popup(self.controller, rem[1])
+			if datetime.datetime.now() > rem[1]:
+				open_popup(self.controller, rem[0])
+			else:
+				rems.append(rem)
+		data.reminder = rems
 
 	def run(self):
+		# _clear(self.my_canvas)
 		clear_frame(self.second_frame)
 		clear_frame(self.framex)
-
 		nbr = len(data.flashcards)
 		# print("number of fa:", nbr)
-
 		j = -1
 		i = 0
 		while i < nbr:
@@ -159,7 +234,7 @@ class MainPage(tk.Frame):
 				self.second_frame, self.controller, flashcard, row=j, column=i % 2
 			)
 			card.bind("<Button-1>", partial(leftClick,
-					  self.controller, flashcard))
+											self.controller, flashcard))
 			i = i + 1
 		add = Button(self.framex, text="+", command=self.create_flashcard)
 		add.pack(side=LEFT)
@@ -184,25 +259,28 @@ class Application(tk.Tk):
 
 		self.frames = {}
 		for F in (
-				MainPage,
-				CreateFlashcardPage,
-				CreateCardPage,
-				ModifyFlashcardPage,
-				ModifyCardPage,
-				DisplayFlashcardPage,
-				ShowProgressPage
+			MainPage,
+			CreateFlashcardPage,
+			CreateCardPage,
+			ModifyFlashcardPage,
+			ModifyCardPage,
+			DisplayFlashcardPage,
+			ShowProgressPage
 		):
 			print(F.__name__)
 			frame = F(parent=self.container, controller=self)
 			self.frames[F.__name__] = frame
-			# frame.pack()
 			frame.grid(row=0, column=0, sticky="nsew")
 
 		self.show_frame("MainPage")
 
 	def show_frame(self, cont, flashcard=None):
 		frame = self.frames[cont]
-		if cont in ("MainPage", "ModifyCardPage", "DisplayFlashcardPage"):
+		if cont == "MainPage":
+			self.frames[cont] = MainPage(parent=self.container, controller=self)
+			frame = self.frames[cont]
+			frame.grid(row=0, column=0, sticky="nsew")
+		if cont in ("MainPage","ModifyCardPage", "DisplayFlashcardPage", "ShowProgressPage"):
 			frame.run()
 		if flashcard:
 			frame.set_flashcard(flashcard)
@@ -259,12 +337,13 @@ if __name__ == "__main__":
 
 	data.flashcards = data.flashcards + \
 		[flashcard1, flashcard2, flashcard3, flashcard4,
-			flashcard5, flashcard6, flashcard7]
+		 flashcard5, flashcard6, flashcard7]
 	# data.reminder = [(time.time(),"Test"),(time.time(),"Game"),(time.time(),"Fear")]
 	data.reminder = []
 	load_data()
 	app = Application()
 	try:
+		asyncio.ensure_future(asyncio.gather(asyncio.sleep(0)))
 		app.mainloop()
 		save_data()
 		# print("exit")

@@ -9,14 +9,21 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
-progress = []
-for i in range(10, 50,5):
-    p = [np.random.randint(i//2,i), i]
-    progress.append(p)
-progress = np.array(progress)
-print(progress[:,1])
-x = progress[:,1]
-y = progress[:,0]
+
+# progress = []
+# for i in range(10, 50, 5):
+#     p = [np.random.randint(i//2, i), i]
+#     progress.append(p)
+# progress = np.array(progress)
+# print(progress[:, 1])
+# x = progress[:, 1]
+# y = progress[:, 0]
+# r = np.divide(y, x)
+
+
+def _clear():
+	for item in tk.canvas.get_tk_widget().find_all():
+		tk.canvas.get_tk_widget().delete(item)
 
 
 class ShowProgressPage(tk.Frame):
@@ -26,19 +33,26 @@ class ShowProgressPage(tk.Frame):
 		tk.Frame.__init__(self, parent, *args, **kwargs)
 		self.parent = parent
 		self.controller = controller
-	
+		self.run()
+
+	def run(self):
+		print("progress page")
+		clear_frame(self)
 		figure2 = plt.Figure(figsize=(5, 4), dpi=100)
-		ax2 = figure2.add_subplot(111)
+		self.ax2 = figure2.add_subplot(111)
 		line2 = FigureCanvasTkAgg(figure2, self)
 		line2.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
-		ax2.plot(x, y) 
-		# ax2.plot(x, r)  
-		ax2.set_xlabel("Number of words")
-		ax2.set_ylabel("Number of correct words")
-		ax2.set_title("flash card progress chart")
 		main_button = tk.Button(self, text="Main", command=self.main)
-		# trans = Label(self.card_frame, text=self.cardData.trans,font=('Arial 15 bold'))
-		# trans.pack()
+		if ShowProgressPage.flashcard:
+			print("progress: ", ShowProgressPage.flashcard.progress)
+			X = np.array(ShowProgressPage.flashcard.progress)
+			x = X[:, 0]
+			y = X[:, 1]
+			r = np.divide(x, y)
+			self.ax2.plot(np.arange(0,len(y), step=1), r)
+		self.ax2.set_xlabel("Tries")
+		self.ax2.set_ylabel("ratio of correct words")
+		self.ax2.set_title("flash card progress chart")
 		main_button.pack()
 
 	def main(self):
@@ -47,12 +61,12 @@ class ShowProgressPage(tk.Frame):
 	@staticmethod
 	def set_flashcard(flash):
 		print("setting flashcard")
-		ModifyFlashcardPage.flashcard = flash
+		ShowProgressPage.flashcard = flash
 
 
 class FlashCardRender(Frame):
 	def __init__(
-		self, parent, controller, flashcard: FlashCardData, row, column
+			self, parent, controller, flashcard: FlashCardData, row, column
 	) -> None:
 		# print(type(flashcard.color))
 		# print(flashcard.color)
@@ -78,19 +92,18 @@ class FlashCardRender(Frame):
 		label2.pack(padx=30, pady=30)
 		self.grid(row=row, column=column, padx=30, pady=30)
 		self.pack_propagate(0)
-		self.modify_button.pack(side=LEFT,padx=15)
-		self.show_button.pack(side=RIGHT,padx=15)
-
+		self.modify_button.pack(side=LEFT, padx=15)
+		self.show_button.pack(side=RIGHT, padx=15)
 
 	def show(self):
 		# clear_frame(self)
-		self.controller.show_frame("ShowProgressPage")
+		if len(self.flashcard.progress):
+			ShowProgressPage.set_flashcard(self.flashcard)
+			self.controller.show_frame("ShowProgressPage")
 
-	
 	def modify(self):
 		print("i want to modify")
 		# clear_frame(self.parent)
 		print(self.flashcard)
 		ModifyFlashcardPage.set_flashcard(self.flashcard)
 		self.controller.show_frame("ModifyFlashcardPage")
-

@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter.colorchooser import askcolor
 from data import CardData,clear_frame
 from functools import partial
-
+import data
 class ModifyCardPage(tk.Frame):
 	flashcard = None
 
@@ -53,6 +53,7 @@ class ModifyCardPage(tk.Frame):
 		reset_button.grid(row=3, column=0, pady=10)
 		main_button = tk.Button(self, text="Main", command=self.main)
 		main_button.grid(row=3, column=2, pady=10)
+
 		if ModifyCardPage.flashcard:
 			print("modifying")
 			nbr = len(ModifyCardPage.flashcard)
@@ -119,16 +120,20 @@ class ModifyFlashcardPage(tk.Frame):
 			self, text="Select a Color", command=self.get_color)
 		self.create_button = tk.Button(
 			self, text="Modify", command=self.modify_card)
+		self.delete_button = tk.Button(
+			self, text="Delete", command=self.delete)
 		self.modify_button = tk.Button(
 			self, text="Modify cards", command=self.modify_cards
 		)
+		# main_button = tk.Button(self, text="Main", command=self.main)
 		main_button = tk.Button(self, text="Main", command=self.main)
-		main_button = tk.Button(self, text="Show Progress", command=self.show)
 
 		self.name_label.pack()
 		self.name_entry.pack()
 		self.color.pack()
 		self.create_button.pack()
+		self.delete_button.pack()
+
 		self.modify_button.pack()
 		main_button.pack()
 
@@ -136,6 +141,9 @@ class ModifyFlashcardPage(tk.Frame):
 		self.controller.show_frame("MainPage")
 	def show(self):
 		pass
+	def delete(self):
+		data.flashcards.remove(ModifyFlashcardPage.flashcard)
+		self.controller.show_frame("MainPage")
 	def get_color(self):
 		color = askcolor(title="Tkinter Color Chooser")
 		self.savedColor = color[1]

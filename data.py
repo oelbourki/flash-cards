@@ -33,7 +33,7 @@ class CardData:
 		self.flashcard = flashcard
 	
 	def __str__(self) -> str:
-		return f"info:{self.info}"
+		return f"info:{self.info}, trans: {self.trans}"
 
 
 
@@ -54,6 +54,9 @@ class FlashCardData:
 	def __str__(self) -> str:
 		s = f"name:{self.name}, color:{self.color}, nbr:{len(self.cards)}: "
 		for card in self.cards:
+			s += f"{card} ,"
+		s += "Progress: "
+		for card in self.progress:
 			s += f"{card} ,"
 		return s
 
