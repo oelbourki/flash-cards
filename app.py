@@ -25,6 +25,7 @@ import winsound
 from threading import Thread
 from multiprocessing import Process
 import asyncio
+import os
 # import tkSnack
 # "https://www.speech.kth.se/snack/man/snack2.2/python-man.html"
 data.init()
@@ -41,9 +42,11 @@ def leftClick(controller, flashcard, e):
 	DisplayFlashcardPage.set_flashcard(flash=flashcard)
 	controller.show_frame("DisplayFlashcardPage")
 
-async def playsound(filename, e):
+def playsound(filename, e):
 	print("playing " + filename)
-	await asyncio.create_task(winsound.PlaySound(filename, winsound.SND_ASYNC))
+	# sleep(e)
+	winsound.PlaySound(filename, winsound.SND_ASYNC)
+	sleep(10)
 # async def on_button_click():
 #     # Start playing the sound asynchronously
 #     await asyncio.create_task(play_sound())
@@ -141,8 +144,8 @@ class DisplayFlashcardPage(tk.Frame):
 				filename = f"{s}{j}"
 				file = f"{path}{filename}"
 				# print("f1: ",file)
-				funcs.append(partial(playsound,f"{file}.wav"))
-				if not os.path.isfile(file):
+				# funcs.append(partial(playsound,f"{file}.wav"))
+				if not os.path.isfile(file + ".wav"):
 				# print(cardd)
 					speech = gTTS(text=cardd.info, lang=language, slow=True)
 					speech.save(f'{file}.mp3')
@@ -153,30 +156,20 @@ class DisplayFlashcardPage(tk.Frame):
 				cardfs.append(cardf)
 			TIME = 5000
 			j = 0
-			# playsound("./sounds/MathjeI0.wav")
+			print("rendering")
 			processs = []
 			for i, cardf in enumerate(cardfs):
 				s = "fr" + str(flashcard.name) + str(cardf.cardData.info) + str(cardf.cardData.trans)
 				filename = f"{s}{i}"
 				file = f"{path}{filename}"
-				# print("f2: ",file)
-				# thread = Thread(target= lambda : self.after((j) * TIME,funcs[i](".")))
-				# thread.start()
-				# process = Process(target= lambda : self.after((j) * TIME,funcs[i](".")))
-				# process.start()
-				# processs.append(process)
 				self.after((j) * TIME, cardf.show)
-				# winsound.PlaySound(f"{file}.wav", winsound.SND_ASYNC)
-				# self.after((j) * TIME,partial(winsound.PlaySound, f"{file}.wav", winsound.SND_ASYNC))
-				# f = partial(playsound,f"{file}.wav")
-				# self.after((j) * TIME,funcs[i]("."))
+				p = Thread(target=playsound,args=(file, (j) * TIME))
+				self.after((j) * TIME,p.start)
+				processs.append(p)
 				self.after((j + 1) * TIME, cardf.showTrans)
 				self.after((j + 2) * TIME, cardf.destroy)
 				j += 2
-			for process in processs:
-				process.join()
 			print("i should retunr to main")
-			# self.after(nbr * 5000, self.controller.show_frame("MainPage"))
 
 	@staticmethod
 	def set_flashcard(flash):
