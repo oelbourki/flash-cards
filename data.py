@@ -27,7 +27,7 @@ class CardData:
         self.flashcard = flashcard
 
     def __str__(self) -> str:
-        return f"info:{self.info}, trans: {self.trans}"
+        return f"word: {self.info} \ntrans: {self.trans}"
 
 
 class FlashCardData:

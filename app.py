@@ -112,8 +112,8 @@ class DisplayFlashcardPage(tk.Frame):
         self.parent = parent
         self.controller = controller
         self.frame = Frame(self.parent)
-        main_button = tk.Button(self, text="Main", command=self.main)
-        main_button.pack()
+        self.main_button = tk.Button(self, text="Main", command=self.main)
+        # main_button.pack()
 
     def main(self):
         self.controller.show_frame("MainPage")
@@ -131,33 +131,48 @@ class DisplayFlashcardPage(tk.Frame):
             funcs = []
             for j in range(nbr):
                 cardd = DisplayFlashcardPage.flashcard.cards[j]
-                s = "fr" + str(flashcard.name) + str(cardd.info) + str(cardd.trans)
-                filename = f"{s}{j}"
-                file = f"{path}{filename}"
-                if not os.path.isfile(file + ".wav"):
-                    speech = gTTS(text=cardd.info, lang=language, slow=True)
-                    speech.save(f"{file}.mp3")
-                    audio = AudioSegment.from_mp3(f"{file}.mp3")
-                    audio.export(f"{file}.wav", format="wav")
+
+                def save(language, text):
+                    s = (
+                        language
+                        + str(flashcard.name)
+                        + str(cardd.info)
+                        + str(cardd.trans)
+                    )
+                    filename = f"{s}{j}"
+                    file = f"{path}{filename}"
+                    if not os.path.isfile(file + ".wav"):
+                        speech = gTTS(text=text, lang=language, slow=True)
+                        speech.save(f"{file}.mp3")
+                        audio = AudioSegment.from_mp3(f"{file}.mp3")
+                        audio.export(f"{file}.wav", format="wav")
+
+                save("fr", cardd.info)
+                save("en", cardd.trans)
                 cardf = CardRender(self, self.controller, cardd, flashcard)
                 cardfs.append(cardf)
             TIME = 5000
+            self.after(nbr * TIME * 2, self.main_button.pack)
             j = 0
             processs = []
             for i, cardf in enumerate(cardfs):
-                s = (
-                    "fr"
-                    + str(flashcard.name)
-                    + str(cardf.cardData.info)
-                    + str(cardf.cardData.trans)
-                )
-                filename = f"{s}{i}"
-                file = f"{path}{filename}"
+
+                def run(langauge, time):
+                    s = (
+                        langauge
+                        + str(flashcard.name)
+                        + str(cardf.cardData.info)
+                        + str(cardf.cardData.trans)
+                    )
+                    filename = f"{s}{i}"
+                    file = f"{path}{filename}"
+                    p = Thread(target=playsound, args=(file, time))
+                    self.after(time, p.start)
+
                 self.after((j) * TIME, cardf.show)
-                p = Thread(target=playsound, args=(file, (j) * TIME))
-                self.after((j) * TIME, p.start)
-                processs.append(p)
+                run("fr", (j) * TIME)
                 self.after((j + 1) * TIME, cardf.showTrans)
+                run("en", (j + 1) * TIME)
                 self.after((j + 2) * TIME, cardf.destroy)
                 j += 2
 

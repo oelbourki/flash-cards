@@ -46,7 +46,7 @@ class ModifyCardPage(tk.Frame):
                 )
                 if i % 5 == 0:
                     j = j + 1
-                button.grid(row=3 + j, column=i % 5)
+                button.grid(row=3 + j, column=i % 4)
                 i = i + 1
 
     def delete_card(self, i):
