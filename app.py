@@ -27,7 +27,6 @@ import winsound
 
 data.init()
 
-
 def _clear(canvas):
     for item in canvas.get_tk_widget().find_all():
         canvas.get_tk_widget().delete(item)

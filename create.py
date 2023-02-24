@@ -52,6 +52,7 @@ class CreateCardPage(tk.Frame):
             translation = self.translation_entry.get()
             card = CardData(word)
             CreateCardPage.flashcard.cards.append(card)
+            # print("---------")
         except Exception as e:
             print(e)
 

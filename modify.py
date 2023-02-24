@@ -70,7 +70,7 @@ class ModifyCardPage(tk.Frame):
     def save_card(self):
         word = self.word_entry.get()
         translation = self.translation_entry.get()
-        card = CardData(word)
+        card = CardData(word, trans=translation)
         ModifyCardPage.flashcard.cards.append(card)
         self.run()
 
@@ -121,7 +121,9 @@ class ModifyFlashcardPage(tk.Frame):
         self.savedColor = color[1]
 
     def modify_card(self):
-        ModifyFlashcardPage.flashcard.name = self.name_entry.get()
+        name = self.name_entry.get()
+        if len(name) > 0:
+            ModifyFlashcardPage.flashcard.name = self.name_entry.get()
         if self.savedColor:
             ModifyFlashcardPage.flashcard.color = self.savedColor
             self.savedColor = None
